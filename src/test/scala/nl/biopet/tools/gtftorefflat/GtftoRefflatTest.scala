@@ -7,7 +7,7 @@ object GtftoRefflatTest extends BiopetTest {
   @Test
   def testNoArgs(): Unit = {
     intercept[IllegalArgumentException] {
-      ToolTemplate.main(Array())
+      GtftoRefflat.main(Array())
     }
   }
 }
