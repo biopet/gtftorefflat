@@ -166,16 +166,16 @@ object GtftoRefflat extends ToolCommand {
         transcript.name,
         gene.contig,
         if (gene.strand) "+" else "-",
-        (transcript.transcriptionStart - 1).toString, //TODO: check if this is correct
+        (transcript.transcriptionStart - 1).toString,
         transcript.transcriptionEnd.toString,
         transcript.codingStart
           .getOrElse(transcript.transcriptionEnd)
-          .toString, //TODO: check if this is correct
+          .toString,
         transcript.codingEnd
           .getOrElse(transcript.transcriptionEnd)
-          .toString, //TODO: check if this is correct
+          .toString,
         transcript.exons.length.toString,
-        exons.map(_.start - 1).mkString("", ",", ","), //TODO: check if this is correct
+        exons.map(_.start - 1).mkString("", ",", ","),
         exons.map(_.end).mkString("", ",", ",")
       )
       writer.println(values.mkString("\t"))
