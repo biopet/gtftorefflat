@@ -2,4 +2,6 @@ package nl.biopet.tools.gtftorefflat
 
 import java.io.File
 
-case class Args(inputFile: File = null)
+case class Args(refFlat: File = null,
+                gtfFile: File = null,
+                referenceFasta: Option[File] = None)
