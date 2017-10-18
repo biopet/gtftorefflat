@@ -2,7 +2,7 @@ package nl.biopet.tools.gtftorefflat
 
 import java.io.{File, PrintWriter}
 
-import nl.biopet.utils.ngs.FastaUtils
+import nl.biopet.utils.ngs.fasta
 import nl.biopet.utils.ngs.annotation.{Exon, Feature, Gene, Transcript}
 import nl.biopet.utils.tool.ToolCommand
 
@@ -30,7 +30,7 @@ object GtftoRefflat extends ToolCommand {
     val exonBuffer: mutable.Map[(String, String), List[Exon]] = mutable.Map()
     val codingBuffer: mutable.Map[(String, String), (Option[Int], Option[Int])] = mutable.Map()
 
-    val referenceDict = referenceFasta.map(file => FastaUtils.getCachedDict(file))
+    val referenceDict = referenceFasta.map(file => fasta.getCachedDict(file))
 
     def updateCodingRegion(geneId: String,
                            transcriptId: String,
