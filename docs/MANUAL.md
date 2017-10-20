@@ -1,3 +1,3 @@
 # Manual
 
-<Elaborate usage description>
+GtfToRefflat converts an input
