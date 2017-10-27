@@ -1,6 +1,3 @@
-TODO:
-- Update docs/manual.md
-
 #  GtfToRefflat
 This tool is part of BIOPET tool suite that is developed at LUMC by [the SASC team](http://sasc.lumc.nl/). 
 Each tool in the BIOPET tool suite is meant to offer a standalone function that can be used to perform a
