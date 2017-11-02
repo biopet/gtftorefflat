@@ -9,11 +9,11 @@ import nl.biopet.utils.tool.ToolCommand
 import scala.collection.mutable
 import scala.io.Source
 
-object GtftoRefflat extends ToolCommand {
+object GtftoRefflat extends ToolCommand[Args] {
+  def emptyArgs: Args = Args()
+  def argsParser = new ArgsParser(toolName)
   def main(args: Array[String]): Unit = {
-    val parser = new ArgsParser(toolName)
-    val cmdArgs =
-      parser.parse(args, Args()).getOrElse(throw new IllegalArgumentException)
+    val cmdArgs = cmdArrayToArgs(args)
 
     logger.info("Start")
     gtfToRefflat(cmdArgs.gtfFile, cmdArgs.refFlat, cmdArgs.referenceFasta)
