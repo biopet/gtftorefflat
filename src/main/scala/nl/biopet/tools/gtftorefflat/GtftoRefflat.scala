@@ -20,15 +20,20 @@ object GtftoRefflat extends ToolCommand[Args] {
     logger.info("Done")
   }
 
-  def gtfToRefflat(gtfFile: File, refflatFile: File, referenceFasta: Option[File] = None): Unit = {
+  def gtfToRefflat(gtfFile: File,
+                   refflatFile: File,
+                   referenceFasta: Option[File] = None): Unit = {
     val reader = Source.fromFile(gtfFile)
 
     val featureBuffer: mutable.Map[String, Int] = mutable.Map()
 
     val genesBuffer: mutable.Map[String, Gene] = mutable.Map()
-    val transcriptsBuffer: mutable.Map[String, List[Transcript]] = mutable.Map()
+    val transcriptsBuffer: mutable.Map[String, List[Transcript]] =
+      mutable.Map()
     val exonBuffer: mutable.Map[(String, String), List[Exon]] = mutable.Map()
-    val codingBuffer: mutable.Map[(String, String), (Option[Int], Option[Int])] = mutable.Map()
+    val codingBuffer
+      : mutable.Map[(String, String), (Option[Int], Option[Int])] =
+      mutable.Map()
 
     val referenceDict = referenceFasta.map(file => fasta.getCachedDict(file))
 
@@ -36,22 +41,32 @@ object GtftoRefflat extends ToolCommand[Args] {
                            transcriptId: String,
                            start: Option[Int] = None,
                            end: Option[Int] = None): Unit = {
-      genesBuffer.get(geneId).flatMap(_.transcripts.find(_.name == transcriptId)) match {
+      genesBuffer
+        .get(geneId)
+        .flatMap(_.transcripts.find(_.name == transcriptId)) match {
         case Some(transcriptOld) =>
           val geneOld = genesBuffer(geneId)
-          genesBuffer(geneId) = geneOld.copy(transcripts = updateTranscriptCodingRegion(
-            transcriptOld,
-            start,
-            end) :: geneOld.transcripts.filter(_.name != transcriptOld.name))
+          genesBuffer(geneId) = geneOld.copy(
+            transcripts = updateTranscriptCodingRegion(
+              transcriptOld,
+              start,
+              end) :: geneOld.transcripts.filter(_.name != transcriptOld.name))
         case _ =>
-          transcriptsBuffer.get(geneId).flatMap(_.find(_.name == transcriptId)) match {
+          transcriptsBuffer
+            .get(geneId)
+            .flatMap(_.find(_.name == transcriptId)) match {
             case Some(transcriptOld) =>
-              transcriptsBuffer(geneId) = updateTranscriptCodingRegion(transcriptOld, start, end) ::
+              transcriptsBuffer(geneId) = updateTranscriptCodingRegion(
+                transcriptOld,
+                start,
+                end) ::
                 transcriptsBuffer(geneId).filter(_.name != transcriptId)
             case _ =>
-              val old = codingBuffer.getOrElse((geneId, transcriptId), (None, None))
+              val old =
+                codingBuffer.getOrElse((geneId, transcriptId), (None, None))
               codingBuffer((geneId, transcriptId)) =
-                (start.map(Some(_)).getOrElse(old._1), end.map(Some(_)).getOrElse(old._2))
+                (start.map(Some(_)).getOrElse(old._1),
+                 end.map(Some(_)).getOrElse(old._2))
           }
       }
     }
@@ -89,21 +104,27 @@ object GtftoRefflat extends ToolCommand[Args] {
         referenceDict.foreach(
           dict =>
             require(dict.getSequence(feature.contig) != null,
-              s"Contig '${feature.contig}' does not exist on reference"))
-        featureBuffer += feature.feature -> (featureBuffer.getOrElse(feature.feature, 0) + 1)
+                    s"Contig '${feature.contig}' does not exist on reference"))
+        featureBuffer += feature.feature -> (featureBuffer.getOrElse(
+          feature.feature,
+          0) + 1)
         lazy val geneId = feature.attributes("gene_id")
         lazy val transcriptId = feature.attributes("transcript_id")
         feature.feature match {
           case "gene" =>
-            genesBuffer += geneId -> Gene(geneId,
+            genesBuffer += geneId -> Gene(
+              geneId,
               feature.contig,
               feature.minPosition,
               feature.maxPosition,
               feature.strand.get,
               transcriptsBuffer.remove(geneId).getOrElse(Nil))
           case "transcript" =>
-            val coding = codingBuffer.remove((geneId, transcriptId)).getOrElse((None, None))
-            val transcript = Transcript(transcriptId,
+            val coding = codingBuffer
+              .remove((geneId, transcriptId))
+              .getOrElse((None, None))
+            val transcript = Transcript(
+              transcriptId,
               feature.minPosition,
               feature.maxPosition,
               coding._1,
@@ -111,42 +132,52 @@ object GtftoRefflat extends ToolCommand[Args] {
               exonBuffer.remove(geneId, transcriptId).getOrElse(Nil))
             if (genesBuffer.contains(geneId)) {
               val oldGene = genesBuffer(geneId)
-              genesBuffer(geneId) = oldGene.copy(transcripts = transcript :: oldGene.transcripts)
+              genesBuffer(geneId) =
+                oldGene.copy(transcripts = transcript :: oldGene.transcripts)
             } else
-              transcriptsBuffer(geneId) = transcript :: transcriptsBuffer.getOrElse(geneId, Nil)
+              transcriptsBuffer(geneId) = transcript :: transcriptsBuffer
+                .getOrElse(geneId, Nil)
           case "exon" =>
             val exon = Exon(feature.minPosition, feature.maxPosition)
-            genesBuffer.get(geneId).flatMap(_.transcripts.find(_.name == transcriptId)) match {
+            genesBuffer
+              .get(geneId)
+              .flatMap(_.transcripts.find(_.name == transcriptId)) match {
               case Some(transcriptOld) =>
                 val geneOld = genesBuffer(geneId)
                 genesBuffer(geneId) = geneOld.copy(
                   transcripts = transcriptOld
-                    .copy(exons = exon :: transcriptOld.exons) :: geneOld.transcripts.filter(
-                    _.name != transcriptOld.name))
+                    .copy(exons = exon :: transcriptOld.exons) :: geneOld.transcripts
+                    .filter(_.name != transcriptOld.name))
               case _ =>
-                transcriptsBuffer.get(geneId).flatMap(_.find(_.name == transcriptId)) match {
+                transcriptsBuffer
+                  .get(geneId)
+                  .flatMap(_.find(_.name == transcriptId)) match {
                   case Some(transcriptOld) =>
                     transcriptsBuffer(geneId) = transcriptOld.copy(
                       exons = exon :: transcriptOld.exons) ::
                       transcriptsBuffer(geneId).filter(_.name != transcriptId)
                   case _ =>
-                    exonBuffer((geneId, transcriptId)) = exon :: exonBuffer.getOrElse(
-                      (geneId, transcriptId),
-                      Nil)
+                    exonBuffer((geneId, transcriptId)) = exon :: exonBuffer
+                      .getOrElse((geneId, transcriptId), Nil)
                 }
             }
           case "stop_codon" if !feature.strand.contains(false) =>
             updateCodingRegion(geneId, transcriptId, end = Some(feature.end))
           case "stop_codon" =>
-            updateCodingRegion(geneId, transcriptId, start = Some(feature.start - 1))
+            updateCodingRegion(geneId,
+                               transcriptId,
+                               start = Some(feature.start - 1))
           case "start_codon" if !feature.strand.contains(false) =>
-            updateCodingRegion(geneId, transcriptId, start = Some(feature.start - 1))
-          case "start_codon" => updateCodingRegion(geneId, transcriptId, end = Some(feature.end))
+            updateCodingRegion(geneId,
+                               transcriptId,
+                               start = Some(feature.start - 1))
+          case "start_codon" =>
+            updateCodingRegion(geneId, transcriptId, end = Some(feature.end))
           case "CDS" =>
             updateCodingRegion(geneId,
-              transcriptId,
-              start = Some(feature.start - 1),
-              end = Some(feature.end))
+                               transcriptId,
+                               start = Some(feature.start - 1),
+                               end = Some(feature.end))
           case _ =>
         }
       }
@@ -156,7 +187,10 @@ object GtftoRefflat extends ToolCommand[Args] {
     val writer = new PrintWriter(refflatFile)
 
     for {
-      (_, genes) <- genesBuffer.values.toList.groupBy(_.contig).toList.sortBy(_._1)
+      (_, genes) <- genesBuffer.values.toList
+        .groupBy(_.contig)
+        .toList
+        .sortBy(_._1)
       gene <- genes.sortBy(_.start)
       transcript <- gene.transcripts
     } {
