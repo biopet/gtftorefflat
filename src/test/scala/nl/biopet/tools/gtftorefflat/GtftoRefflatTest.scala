@@ -11,4 +11,7 @@ class GtftoRefflatTest extends ToolTest[Args] {
       GtftoRefflat.main(Array())
     }
   }
+
+  //Tool too simple for complex description.
+  override def minDescriptionWords: Int = 10
 }
