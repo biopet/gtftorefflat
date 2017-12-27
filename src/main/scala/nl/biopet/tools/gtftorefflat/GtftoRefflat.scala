@@ -217,4 +217,28 @@ object GtftoRefflat extends ToolCommand[Args] {
 
     writer.close()
   }
+
+  def descriptionText: String =
+    s"""
+      |$toolName converts a GTF file to a refflat file.
+    """.stripMargin
+
+  def manualText: String =
+    s"""
+      |$toolName converts a GTF file to a refflat file.
+      |It can optionally use a reference FASTA file to check
+      |if all contigs are present on this reference FASTA file.
+    """.stripMargin
+
+  def exampleText: String =
+    s"""
+       |To convert a gtf to refflat and check if all contigs are present
+       |in the reference:
+       |${example("-g",
+                  "input.gtf",
+                  "-r",
+                  "output.refflat",
+                  "-R",
+                  "reference.fa")}
+     """.stripMargin
 }
