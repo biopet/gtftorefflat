@@ -99,7 +99,7 @@ object GtftoRefflat extends ToolCommand[Args] {
         case Some(x) =>
           transcript.codingStart match {
             case Some(y) if y < x => Some(y)
-            case _ => Some(x)
+            case _                => Some(x)
           }
         case _ => transcript.codingStart
       }
@@ -108,7 +108,7 @@ object GtftoRefflat extends ToolCommand[Args] {
         case Some(x) =>
           transcript.codingEnd match {
             case Some(y) if y > x => Some(y)
-            case _ => Some(x)
+            case _                => Some(x)
           }
         case _ => transcript.codingEnd
       }
@@ -144,13 +144,13 @@ object GtftoRefflat extends ToolCommand[Args] {
             val coding = codingBuffer
               .remove((geneId, transcriptId))
               .getOrElse((None, None))
-            val transcript = Transcript(
-              transcriptId,
-              feature.minPosition,
-              feature.maxPosition,
-              coding._1,
-              coding._2,
-              exonBuffer.remove(geneId, transcriptId).getOrElse(Nil))
+            val transcript =
+              Transcript(transcriptId,
+                         feature.minPosition,
+                         feature.maxPosition,
+                         coding._1,
+                         coding._2,
+                         exonBuffer.remove(geneId, transcriptId).getOrElse(Nil))
             if (genesBuffer.contains(geneId)) {
               val oldGene = genesBuffer(geneId)
               genesBuffer(geneId) =
