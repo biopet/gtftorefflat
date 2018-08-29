@@ -83,11 +83,11 @@ object GtftoRefflat extends ToolCommand[Args] {
                 end) ::
                 transcriptsBuffer(geneId).filter(_.name != transcriptId)
             case _ =>
-              val old =
+              val (oldStart, oldEnd) =
                 codingBuffer.getOrElse((geneId, transcriptId), (None, None))
               codingBuffer((geneId, transcriptId)) =
-                (start.map(Some(_)).getOrElse(old._1),
-                 end.map(Some(_)).getOrElse(old._2))
+                (start.map(Some(_)).getOrElse(oldStart),
+                 end.map(Some(_)).getOrElse(oldEnd))
           }
       }
     }
@@ -141,15 +141,15 @@ object GtftoRefflat extends ToolCommand[Args] {
               feature.strand.get,
               transcriptsBuffer.remove(geneId).getOrElse(Nil))
           case "transcript" =>
-            val coding = codingBuffer
+            val (start, end) = codingBuffer
               .remove((geneId, transcriptId))
               .getOrElse((None, None))
             val transcript =
               Transcript(transcriptId,
                          feature.minPosition,
                          feature.maxPosition,
-                         coding._1,
-                         coding._2,
+                         start,
+                         end,
                          exonBuffer.remove(geneId, transcriptId).getOrElse(Nil))
             if (genesBuffer.contains(geneId)) {
               val oldGene = genesBuffer(geneId)
@@ -211,7 +211,7 @@ object GtftoRefflat extends ToolCommand[Args] {
       (_, genes) <- genesBuffer.values.toList
         .groupBy(_.contig)
         .toList
-        .sortBy(_._1)
+        .sortBy { case (name, _) => name }
       gene <- genes.sortBy(_.start)
       transcript <- gene.transcripts
     } {
